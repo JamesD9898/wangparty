@@ -1,4 +1,5 @@
-# To Set Up
+## To Set Up
 
 run "npm install" # install dependencies
 run "npm run start" # start server
+run "npm run dev" # start development server using nodemon for easy debugging
