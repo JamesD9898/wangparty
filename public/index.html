@@ -18,12 +18,29 @@
     </p>
     <h2>Servers</h2>
     <div class="servers">
-      <div>
-        <h3 class="servername">David's Server</h3>
-        <p class="visibility" id="private">Private</p>
-        <p class="players">3/5 Players</p>
-        <button class="join">Join Lobby</button>
-      </div>
+      <script>
+        const serverdiv = document.querySelector(".servers");
+        async function updateServerDiv() {
+          const servers = await fetch("/api/servers").then((res) => res.json());
+          console.log(servers.servers);
+          let serverhtml = "";
+          servers.servers.forEach((server) => {
+            console.log(`${server.id}: ${server.name}`);
+            serverhtml =
+              serverhtml +
+              `<div id="server${server.id}">
+                <h3 class="servername">${server.name}</h3>
+                <p class="visibility" id="${
+                  server.public ? "Public" : "Private"
+                }">${server.public ? "Public" : "Private"}</p>
+                <p class="players">${server.players.length}/5 Players</p>
+                <button class="join">Join Lobby</button>
+            </div>`;
+          });
+          serverdiv.insertAdjacentHTML("beforeend", serverhtml);
+        }
+        updateServerDiv();
+      </script>
     </div>
   </body>
 </html>
