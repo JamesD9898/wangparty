@@ -1,6 +1,6 @@
 {
     "servers" : [
         {"id": 0, "name": "David's Server", "players": ["player1"]},
-        {"id": 1, "name": "David's Server 2", "players": ["player3", "player2"]}
+        {"id": 1, "name": "James' Server", "players": ["player3", "player2"], "public": true}
     ]
 }
