@@ -7,36 +7,51 @@
     <link rel="stylesheet" href="main.css" />
   </head>
   <body>
-    <h1>WangParty</h1>
-    <h3>5-Second Rule</h3>
-    <p>
-      How to Play: Join with friends. Input questions, vote on answers. The most knowledgable and quick-thinking person wins!
-    </p>
-    <h2>Servers</h2>
-    <div class="servers">
-      <script>
-        const serverdiv = document.querySelector(".servers");
-        async function updateServerDiv() {
-          const servers = await fetch("/api/servers").then((res) => res.json());
-          console.log(servers.servers);
-          let serverhtml = "";
-          servers.servers.forEach((server) => {
-            console.log(`${server.id}: ${server.name}`);
-            serverhtml =
-              serverhtml +
-              `<div id="server${server.id}">
-                <h3 class="servername">${server.name}</h3>
-                <p class="visibility" id="${
-                  server.public ? "Public" : "Private"
-                }">${server.public ? "Public" : "Private"}</p>
-                <p class="players">${server.players.length}/5 Players</p>
-                <button class="join">Join Lobby</button>
+    <header>
+      <nav class="navbar">
+        <a href="#" class="logo">WangParty</a>
+        <ul class="nav-links">
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li class="right"><a href="#">Profile</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section>
+        <h3>5-Second Rule</h3>
+        <p>
+          How to Play: Join with friends. Input questions, vote on answers. The
+          most knowledgeable and quick-thinking person wins!
+        </p>
+      </section>
+
+      <section>
+        <h2>Servers</h2>
+        <div class="servers"></div>
+      </section>
+    </main>
+
+    <script>
+      const serverdiv = document.querySelector(".servers");
+      async function updateServerDiv() {
+        const servers = await fetch("/api/servers").then((res) => res.json());
+        let serverhtml = "";
+        servers.servers.forEach((server) => {
+          serverhtml += `
+            <div class="server" id="server${server.id}">
+              <h3 class="servername">${server.name}</h3>
+              <p class="visibility ${server.public ? "public" : "private"}">
+                ${server.public ? "Public" : "Private"}
+              </p>
+              <p class="players">${server.players.length}/5 Players</p>
+              <button class="join">Join Lobby</button>
             </div>`;
-          });
-          serverdiv.insertAdjacentHTML("beforeend", serverhtml);
-        }
-        updateServerDiv();
-      </script>
-    </div>
+        });
+        serverdiv.innerHTML = serverhtml;
+      }
+      updateServerDiv();
+    </script>
   </body>
 </html>
