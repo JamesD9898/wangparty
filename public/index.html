@@ -19,6 +19,13 @@
     </header>
 
     <main>
+      <div class="modal" id="create-server-modal">
+        <div class="modal-content">
+          <h2>Create Server</h2>
+          <input type="text" id="server-name" placeholder="Server Name" />
+          <button id="create-server-button">Create</button>
+        </div>
+      </div>
       <section>
         <h3>5-Second Rule</h3>
         <p>
@@ -29,6 +36,8 @@
 
       <section>
         <h2>Servers</h2>
+        <button class="create-server">Create Server</button>
+
         <div class="servers"></div>
       </section>
     </main>
@@ -49,7 +58,7 @@
               <button class="join">Join Lobby</button>
             </div>`;
         });
-        serverdiv.innerHTML = serverhtml;
+        serverdiv.innerHTML = serverhtml ? serverhtml : "No servers found";
       }
       updateServerDiv();
     </script>

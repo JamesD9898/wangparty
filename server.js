@@ -2,22 +2,24 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const mongoose = require('mongoose');
 const app = express();
 const PORT = 3000;
 const Server = require('./models/servers.js'); // adjust path as needed
+require('dotenv').config();
 
-function readServers() {
-    const fileName = "tempdb.json"
-    const filePath = path.join(__dirname, fileName);
-  
-    try {
-      const data = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(data);
-    } catch (err) {
-      console.error('Failed to read or parse temdb.json:', err);
-      return null;
-    }
-  }
+
+// MongoDB connection
+const MONGODB_URI = process.env.MONGO_CONNECTION_URL;
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to WANGPARTY DB successfully');
+  })
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  });
   
 // middleware
 app.use(express.json());
@@ -39,12 +41,61 @@ app.get('/api/servers', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.post('/api/servers/join', (req, res) => {
-  const serverToJoin = req.serverID
-  const player = req.PlayerID
+app.post('/api/servers/join', async (req, res) => {
+  try {
+    const { serverID, playerID } = req.body;
+    
+    if (!serverID || !playerID) {
+      return res.status(400).json({ error: 'serverID and playerID are not found' });
+    }
+
+    const server = await Server.findOne({ id: serverID });
+    if (!server) {
+      return res.status(404).json({ error: 'Server not found' });
+    }
+
+    if (server.players.length >= server.maxPlayers) {
+      return res.status(400).json({ error: 'Full Server' });
+    }
+
+    if (server.players.includes(playerID)) {
+      return res.status(400).json({ error: 'Already in server' });
+    }
+
+    server.players.push(playerID);
+    await server.save();
+
+    res.json({ message: 'Joined server!', server });
+  } catch (error) {
+    console.error('Failed to join server:', error);
+    res.status(500).json({ error: 'Failed to join server' });
+  }
 });
-app.post('/api/servers/add', (req, res) => {
-  const serverJSON = req.server
+app.post('/api/servers/add', async (req, res) => {
+  try {
+    const { name, public: isPublic, maxPlayers } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Server name is not found' });
+    }
+
+    const existingServers = await Server.find({}, { id: 1 }).sort({ id: -1 }).limit(1);
+    const nextId = existingServers.length > 0 ? existingServers[0].id + 1 : 1;
+
+    const newServer = new Server({
+      id: nextId,
+      name,
+      public: isPublic || false,
+      maxPlayers: maxPlayers || 5,
+      players: []
+    });
+
+    await newServer.save();
+    res.status(201).json({ message: 'Server created!', server: newServer });
+  } catch (error) {
+    console.error('Failed to create server:', error);
+    res.status(500).json({ error: 'Failed to create server' });
+  }
 });
 
 
