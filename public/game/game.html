@@ -95,7 +95,7 @@
     </script>
     <section class = "answering">
         <h2>Answer</h2>
-        <div id="messages"></div>
+        <div id="answering"></div>
         <form action="" id="messageForm">
         <input type="text" placeholder="Submit answer" id="answerhere" />
         <button onclick="addanswer()">Send</button>
@@ -103,19 +103,10 @@
     </section>
     <script>
         let answernumber = 0; 
+        
+        const answerDiv = document.getElementById("answers");
 
-        function addanswer(){
-            const user = getCookieValue("name");
-            const answerform = document.getByElementID("answerhere");
-            const answercontent = answerform.value;
-
-        }
-
-        function renderMessages() {
-            messageDiv.innerHTML = "";
-          let MessageHTML = ` <p><span class="sender">${messages[i].user}</span> : <span class="message">${messages[i].message}</span></p>`;
-          messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
-        }
+        
     </script>
   </body>
 </html>
