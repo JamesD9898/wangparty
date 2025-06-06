@@ -75,3 +75,4 @@ function renderAnswers() {
   }
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
+

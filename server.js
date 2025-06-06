@@ -14,6 +14,7 @@ let playersanswers = [];
 let phase = "Waiting";
 let question = "";
 let phaseBeginTime = "";
+let gameChat = [];
 
 require('dotenv').config();
 
@@ -49,6 +50,17 @@ app.get('/api/servers', async (req, res) => {
     console.error('Failed to fetch servers:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+app.get('/api/gamechat', async (req, res) => {
+  res.json({ gameChat });
+});
+app.post('/api/gamechat', async (req, res) => {
+  const { message } = req.body;
+  gameChat.push(message);
+  if(gameChat.length > 7){
+    gameChat.shift();
+  }
+  res.json({ message: 'Message added to chat' });
 });
 app.post('/api/servers/join', async (req, res) => {
   try {

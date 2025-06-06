@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="../main.css" />
   </head>
   <body>
-   
     <section class="main">
       <nav>
         <h1>Five Second Rule</h1>
@@ -17,16 +16,14 @@
       <h2>Time: <span id="time"></span></h2>
       <h2>Up now: <span id="currentPlayer"></span></h2>
       <ul id="answers">
-        <li>Answer 1 <span id = "a1"></span></li>
-        <li>Answer 2<span id = "a2"></span></li>
-        <li>Answer 3<span id = "a3"></span></li>
-        <li>Answer 4<span id = "a4"></span></li>
+        <li>Answer 1 <span id="a1"></span></li>
+        <li>Answer 2<span id="a2"></span></li>
+        <li>Answer 3<span id="a3"></span></li>
+        <li>Answer 4<span id="a4"></span></li>
       </ul>
     </section>
     <script>
-        const questionDiv = document.getByElementID(question);
-        
-
+      const questionDiv = document.getByElementID(question);
     </script>
 
     <section class = "answering">
@@ -52,13 +49,14 @@
       </div>
     </section>
     <section class="chat">
-      <h2 id ="mainChat">Chat</h2>
+      <h2 id="mainChat">Chat</h2>
       <div id="messages"></div>
       <form action="" id="messageForm">
         <input type="text" placeholder="Send a Message" id="messagehere" />
         <button onclick="addnewmessage()">Send</button>
       </form>
     </section>
+    <script src="chat.js"></script>
     <script src="game.js"></script>
   </body>
 </html>

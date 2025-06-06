@@ -98,7 +98,12 @@ nav h1 {
 }
 .chat {
     height: 50vh;
-
+}
+.chat #mainChat{
+    background-color: rgb(167, 231, 247);
+    margin-bottom: 7px;
+    padding: 10px;
+    text-align: center
 }
 
 .chat form {
