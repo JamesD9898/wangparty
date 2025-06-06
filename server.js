@@ -6,6 +6,15 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = 3000;
 const Server = require('./models/servers.js'); // adjust path as needed
+
+//Server Information (for now)
+let players = [{"name": "David", "score": 0, "time": 5000}];
+let playerup = 0;
+let playersanswers = [];
+let phase = "Waiting";
+let question = "";
+let phaseBeginTime = "";
+
 require('dotenv').config();
 
 
@@ -97,6 +106,40 @@ app.post('/api/servers/add', async (req, res) => {
     res.status(500).json({ error: 'Failed to create server' });
   }
 });
+app.get("/api/gameinfo", async (req, res) => {
+  res.send({
+    players, playerup, playersanswers, phase, question
+  })
+});
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+async function gameLoop(){
+  while (true){
+    if(players > 1){
+      phase = "questioning"
+      while(!question){
+        await(1);
+      }
+      while (!question){
+        console.log("waiting for question");
+      }
+      playerup = (playerup+1) % players;
+      phase = "answering"
+      // TODO find a way to log the time and set it to phaseTime
+      // wait for the current player to add answers
+      // wait for the current players time to end 
+      phase = "voting";
+
+    } else {
+      phase = "waiting";
+    }
+  }
+}
+gameLoop();
 
 
 function getLocalIP(){
