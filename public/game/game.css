@@ -6,6 +6,7 @@ body {
     background-color: #f4f4f4;
     color: #333;
     display:grid;
+    grid-template-columns: 70% 30%;
 }
 
 nav {
@@ -94,6 +95,10 @@ nav h1 {
 
 .chat #messages .message {
     color: #555;
+}
+.chat {
+    height: 50vh;
+
 }
 
 .chat form {
