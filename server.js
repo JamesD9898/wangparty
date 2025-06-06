@@ -151,7 +151,6 @@ async function gameLoop(){
     }
   }
 }
-gameLoop();
 
 
 function getLocalIP(){

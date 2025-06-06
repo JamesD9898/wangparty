@@ -6,6 +6,7 @@ messages = [
   { user: "james", message: "Nope" },
 ];
 renderMessages();
+addanswer();
 var name = getCookieValue("name");
 if(!name){
     // update cookie with guest name
@@ -50,29 +51,22 @@ function getCookieValue(name) {
   return value ? decodeURIComponent(value) : null;
 }
 
-answers = {
-    content: "",
-    content: "",
-    content: ""
-}
+let currentAnswerIndex = 1; // starts from 1 for a1, a2, a3, a4
 
-let answernum = 0;
+function addanswer() {
+    const input = document.querySelector("input");
+    const answerText = input.value.trim();
 
-function addanswers(){
-    const user = getCookieValue("name");
-    const answerForm = document.getElementById("answerhere");
-    const answerContent = answerForm.value;
-    messages.push({ user: user, message: messageContent });
-    renderAnswers();
-    removeFirstMessage();
+    if (answerText === "" || currentAnswerIndex > 4) return;
+
+    // Set the answer in the corresponding span
+    const span = document.getElementById("a" + currentAnswerIndex);
+    span.textContent = answerText;
+
+    // Clear the input and increment index
+    input.value = "";
+    currentAnswerIndex++;
 }
-function renderAnswers() {
-    messageDiv.innerHTML = "";
-    for (let i = 0; i < messages.length; i++) {
-      let MessageHTML = ` <p><span class="sender">${messages[i].user}</span> : <span class="message">${messages[i].message}</span></p>`;
-      messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
-    }
-  }
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
 
