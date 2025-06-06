@@ -6,7 +6,6 @@ messages = [
   { user: "james", message: "Nope" },
 ];
 renderMessages();
-addanswer();
 var name = getCookieValue("name");
 if(!name){
     // update cookie with guest name
@@ -51,22 +50,6 @@ function getCookieValue(name) {
   return value ? decodeURIComponent(value) : null;
 }
 
-let currentAnswerIndex = 1; // starts from 1 for a1, a2, a3, a4
-
-function addanswer() {
-    const input = document.querySelector("input");
-    const answerText = input.value.trim();
-
-    if (answerText === "" || currentAnswerIndex > 4) return;
-
-    // Set the answer in the corresponding span
-    const span = document.getElementById("a" + currentAnswerIndex);
-    span.textContent = answerText;
-
-    // Clear the input and increment index
-    input.value = "";
-    currentAnswerIndex++;
-}
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
 
