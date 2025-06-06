@@ -59,6 +59,12 @@
             </div>`;
         });
         serverdiv.innerHTML = serverhtml ? serverhtml : "No servers found";
+            const joinButtons = document.querySelectorAll(".join");
+           joinButtons.forEach((button) => {
+               button.addEventListener("click", () => {
+                   window.location.href = "/game/game.html";
+              });
+            });
       }
       updateServerDiv();
     </script>
