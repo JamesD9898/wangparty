@@ -159,6 +159,6 @@ const myIP = getLocalIP();
 console.log('Local IP address:', myIP);
 // start the server 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://${myIP}:${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
