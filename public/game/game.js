@@ -5,6 +5,9 @@ messages = [
   { user: "alex", message: "Hi" },
   { user: "james", message: "Nope" },
 ];
+
+addAnswers();
+
 renderMessages();
 var name = getCookieValue("name");
 if(!name){
@@ -36,6 +39,33 @@ function renderMessages() {
     let MessageHTML = ` <p><span class="sender">${messages[i].user}</span> : <span class="message">${messages[i].message}</span></p>`;
     messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
   }
+}
+
+function addAnswers(){
+    let currentAnswerIndex = 1;
+    const maxAnswers = 4;
+      
+    const input = document.querySelector("input");
+    const button = document.querySelector("button");
+      
+    document.getElementById("answerForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // Prevent form from reloading the page
+
+    const input = document.getElementById("answerhere");
+    const answer = input.value.trim();
+
+    if (answer === "" || currentAnswerIndex > maxAnswers) return;
+
+    const span = document.getElementById("a" + currentAnswerIndex);
+    span.textContent = `${answer}`;
+
+    input.value = "";
+    currentAnswerIndex++;
+  });
+}
+
+function removeAnswers(){
+
 }
 document
   .getElementById("messageForm")
