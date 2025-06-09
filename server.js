@@ -8,13 +8,17 @@ const PORT = 3000;
 const Server = require('./models/servers.js'); // adjust path as needed
 
 //Server Information (for now)
-let players = [{"name": "David", "score": 0, "time": 5000}];
+let players = [
+  {"name": "David", "score": 0, "time": 5000},
+  {"name": "David", "score": 0, "time": 5000}
+];
 let playerup = 0;
 let playersanswers = [];
 let phase = "Waiting";
 let question = "";
 let phaseBeginTime = "";
 let gameChat = [];
+let votes = [0, 0];
 
 require('dotenv').config();
 
@@ -55,8 +59,8 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message, user } = req.body;
-  gameChat.push({ message, user });
+  const { message } = req.body;
+  gameChat.push(message);
   if(gameChat.length > 7){
     gameChat.shift();
   }
@@ -118,6 +122,25 @@ app.post('/api/servers/add', async (req, res) => {
     res.status(500).json({ error: 'Failed to create server' });
   }
 });
+
+app.post("/api/join", async (req, res) => {
+  let name = req.name;
+  if(!name) res.status(500).send("Name is Empty.");
+  for (let i = 0; i< players.length; i++){
+    if (players[i].name == name){
+      res.status(500).send("Name already exists.");
+    }
+  }
+  players.push({"name": name, "time": 5000, "score": 0});
+});
+app.post("/api/leave", async (req, res) => {
+  let name = req.name;
+  for(let i = 0; i<players.length; i++){
+    if(players[i].name==name){
+      players.pop(i);
+    }
+  }
+});
 app.get("/api/gameinfo", async (req, res) => {
   res.send({
     players, playerup, playersanswers, phase, question
@@ -128,6 +151,22 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+app.post('/specifiedroute', (req, res) => {
+  let buttons = {
+    "approve": "Approve",
+    "reject": "Reject"
+  }
+  let reqButton = req.query.button;
+  res.send(buttons[reqButton])
+
+  while(phase=="voting"){
+    if(reqButton=="Approve"){
+    votes[0]++;
+  }else{
+    votes[1]++;
+  }
+  }
+})
 
 async function gameLoop(){
   while (true){
@@ -145,7 +184,9 @@ async function gameLoop(){
       // wait for the current player to add answers
       // wait for the current players time to end 
       phase = "voting";
+      while(phase == "voting"){
 
+      }
     } else {
       phase = "waiting";
     }

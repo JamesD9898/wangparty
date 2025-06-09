@@ -185,6 +185,21 @@
       }
 
       updateServerDiv();
+      
+async function join(name){
+    try{
+    const response = await fetch('/api/join', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: name }),
+    });}
+    catch (error){
+        console.error("Failed to join:" + error);
+        //redirect to home page
+    }
+}
     </script>
   </body>
 </html>
