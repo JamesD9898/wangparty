@@ -17,6 +17,7 @@
 
 
   <body>
+   
     <section class="main">
       <nav>
         <h1>Five Second Rule</h1>
@@ -24,32 +25,27 @@
       <h2>Question: <span id="question"></span></h2>
       <h2>Time: <span id="time"></span></h2>
       <h2>Up now: <span id="currentPlayer"></span></h2>
-      <ul id="answers">
-        <li>Answer 1 <span id="a1"></span></li>
-        <li>Answer 2<span id="a2"></span></li>
-        <li>Answer 3<span id="a3"></span></li>
-        <li>Answer 4<span id="a4"></span></li>
-      </ul>
     </section>
     <script>
-      const questionDiv = document.getByElementID(question);
+        const questionDiv = document.getByElementID(question);
+        
+
     </script>
 
     <section class = "answering">
         <h2 id = "answer">Answer</h2>
         <div id = "answerBox"></div>
-        <form action="" id="answerForm">
-            <input type = "text" placeholder = "Submit Answer" id ="answerHere" />
+        <form id="answerForm">
+            <input type = "text" placeholder = "Submit Answer" id ="answerhere" />
             <button onclick ="addanswers()">Send</button>
         </form>
     </section>
-    <script>
-        answers = {
-            content: "",
-            content: "",
-            content: ""
-        }
-    </script>
+    <ul id="answers">
+        <li>Answer 1 <span id = "a1"></span></li>
+        <li>Answer 2<span id = "a2"></span></li>
+        <li>Answer 3<span id = "a3"></span></li>
+        <li>Answer 4<span id = "a4"></span></li>
+      </ul>
     <section class="vote">
       <h2>Answer 1</h2>
       <div class="vote-buttons">
@@ -58,14 +54,34 @@
       </div>
     </section>
     <section class="chat">
-      <h2 id="mainChat">Chat</h2>
+      <h2 id ="mainChat">Chat</h2>
       <div id="messages"></div>
       <form action="" id="messageForm">
         <input type="text" placeholder="Send a Message" id="messagehere" />
         <button onclick="addnewmessage()">Send</button>
       </form>
     </section>
-    <script src="chat.js"></script>
     <script src="game.js"></script>
+    <script>
+        let currentAnswerIndex = 1;
+        const maxAnswers = 4;
+      
+        const input = document.querySelector("input");
+        const button = document.querySelector("button");
+      
+        button.addEventListener("click", (e) => {
+          e.preventDefault(); // Prevents form reload if inside a <form>
+      
+          const answer = input.value.trim();
+      
+          if (answer === "" || currentAnswerIndex > maxAnswers) return;
+      
+          const span = document.getElementById("a" + currentAnswerIndex);
+          span.textContent = `${answer}`;
+      
+          input.value = "";
+          currentAnswerIndex++;
+        });
+      </script>
   </body>
 </html>

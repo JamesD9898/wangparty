@@ -55,8 +55,8 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message } = req.body;
-  gameChat.push(message);
+  const { message, user } = req.body;
+  gameChat.push({ message, user });
   if(gameChat.length > 7){
     gameChat.shift();
   }
@@ -151,7 +151,6 @@ async function gameLoop(){
     }
   }
 }
-gameLoop();
 
 
 function getLocalIP(){
