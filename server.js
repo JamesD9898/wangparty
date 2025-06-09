@@ -8,7 +8,10 @@ const PORT = 3000;
 const Server = require('./models/servers.js'); // adjust path as needed
 
 //Server Information (for now)
-let players = [{"name": "David", "score": 0, "time": 5000}];
+let players = [
+  {"name": "David", "score": 0, "time": 5000},
+  {"name": "David", "score": 0, "time": 5000}
+];
 let playerup = 0;
 let playersanswers = [];
 let phase = "Waiting";
@@ -119,6 +122,25 @@ app.post('/api/servers/add', async (req, res) => {
     res.status(500).json({ error: 'Failed to create server' });
   }
 });
+
+app.post("/api/join", async (req, res) => {
+  let name = req.name;
+  if(!name) res.status(500).send("Name is Empty.");
+  for (let i = 0; i< players.length; i++){
+    if (players[i].name == name){
+      res.status(500).send("Name already exists.");
+    }
+  }
+  players.push({"name": name, "time": 5000, "score": 0});
+});
+app.post("/api/leave", async (req, res) => {
+  let name = req.name;
+  for(let i = 0; i<players.length; i++){
+    if(players[i].name==name){
+      players.pop(i);
+    }
+  }
+});
 app.get("/api/gameinfo", async (req, res) => {
   res.send({
     players, playerup, playersanswers, phase, question
@@ -139,10 +161,10 @@ app.post('/specifiedroute', (req, res) => {
 
   while(phase=="voting"){
     if(reqButton=="Approve"){
-      votes[0]++;
-    }else{
-      votes[1]++;
-    }
+    votes[0]++;
+  }else{
+    votes[1]++;
+  }
   }
 })
 

@@ -1,5 +1,7 @@
 const messageDiv = document.getElementById("messages");
 
+var hasVoted = false;
+
 messages = [
   { user: "asdlkl;,", message: "Hi" },
   { user: "alex", message: "Hi" },
@@ -42,6 +44,7 @@ function renderMessages() {
 }
 
 function addAnswers(){
+    isVoting = false;
     let currentAnswerIndex = 1;
     const maxAnswers = 4;
       
@@ -62,11 +65,18 @@ function addAnswers(){
     input.value = "";
     currentAnswerIndex++;
   });
+  isVoting = true;
 }
 
-function removeAnswers(){
-
+function clearAnswers(){
+    let ans = 1;
+    for(let x = ans; x<4; x++){
+        const span = document.getElementById("a" + currentAnswerIndex);
+        span.textContent = "";
+    }
 }
+
+
 document
   .getElementById("messageForm")
   .addEventListener("submit", function (event) {
@@ -79,5 +89,20 @@ function getCookieValue(name) {
     ?.split("=")[1];
   return value ? decodeURIComponent(value) : null;
 }
+
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
+async function leave(name){
+    try{
+        const response = await fetch('/api/leave', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name: name }),
+        });}
+        catch (error){
+            console.error("Failed to join:" + error);
+            //redirect to home page
+        }
+}

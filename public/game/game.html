@@ -7,15 +7,6 @@
     <link rel="stylesheet" href="game.css" />
     <link rel="stylesheet" href="../main.css" />
   </head>
-
-  <audio id="gameMusic" src="../music/a-goofy-and-silly-medieval-song-161310.mp3" autoplay loop></audio>
-  <script>
-    const audio = document.getElementById("gameMusic");
-    audio.volume = 0.3; // 20% volume, adjust as needed
-  </script>
-
-
-
   <body>
    
     <section class="main">
@@ -49,8 +40,8 @@
     <section class="vote">
       <h2>Answer 1</h2>
       <div class="vote-buttons">
-        <button>Approve</button>
-        <button>Reject</button>
+        <button type = "submit" onclick="countvote(true)">Approve</button>
+        <button type = "submit" onclick="countvote(false)">Reject</button>
       </div>
     </section>
     <section class="chat">
@@ -62,26 +53,5 @@
       </form>
     </section>
     <script src="game.js"></script>
-    <script>
-        let currentAnswerIndex = 1;
-        const maxAnswers = 4;
-      
-        const input = document.querySelector("input");
-        const button = document.querySelector("button");
-      
-        button.addEventListener("click", (e) => {
-          e.preventDefault(); // Prevents form reload if inside a <form>
-      
-          const answer = input.value.trim();
-      
-          if (answer === "" || currentAnswerIndex > maxAnswers) return;
-      
-          const span = document.getElementById("a" + currentAnswerIndex);
-          span.textContent = `${answer}`;
-      
-          input.value = "";
-          currentAnswerIndex++;
-        });
-      </script>
   </body>
 </html>
