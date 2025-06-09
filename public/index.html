@@ -34,6 +34,13 @@
         </p>
       </section>
 
+      <section class="name-input">
+        <label for="username">Enter your name (optional):</label>
+        <input type="text" id="username" placeholder="e.g., Alex" />
+      </section>
+      
+
+
       <section>
         <h2>Servers</h2>
         <button class="create-server">Create Server</button>
@@ -55,9 +62,16 @@
                 ${server.public ? "Public" : "Private"}
               </p>
               <p class="players">${server.players.length}/5 Players</p>
-              <button class="join">Join Lobby</button>
+              <button class="join" onclick="handleJoinLobby()">Join Lobby</button>
             </div>`;
         });
+        function handleJoinLobby() {
+        const username = document.getElementById("username").value.trim();
+        if (username) {
+           document.cookie = "name=" + encodeURIComponent(username);
+          }
+         window.location.href = "/game/game.html";
+        }
         serverdiv.innerHTML = serverhtml ? serverhtml : "No servers found";
             const joinButtons = document.querySelectorAll(".join");
            joinButtons.forEach((button) => {

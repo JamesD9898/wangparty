@@ -79,7 +79,5 @@ function getCookieValue(name) {
     ?.split("=")[1];
   return value ? decodeURIComponent(value) : null;
 }
-
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
-
