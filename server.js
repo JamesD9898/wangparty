@@ -15,6 +15,7 @@ let phase = "Waiting";
 let question = "";
 let phaseBeginTime = "";
 let gameChat = [];
+let votes = [0, 0];
 
 require('dotenv').config();
 
@@ -55,8 +56,8 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message, user } = req.body;
-  gameChat.push({ message, user });
+  const { message } = req.body;
+  gameChat.push(message);
   if(gameChat.length > 7){
     gameChat.shift();
   }
@@ -128,6 +129,22 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+app.post('/specifiedroute', (req, res) => {
+  let buttons = {
+    "approve": "Approve",
+    "reject": "Reject"
+  }
+  let reqButton = req.query.button;
+  res.send(buttons[reqButton])
+
+  while(phase=="voting"){
+    if(reqButton=="Approve"){
+      votes[0]++;
+    }else{
+      votes[1]++;
+    }
+  }
+})
 
 async function gameLoop(){
   while (true){
@@ -145,7 +162,9 @@ async function gameLoop(){
       // wait for the current player to add answers
       // wait for the current players time to end 
       phase = "voting";
+      while(phase == "voting"){
 
+      }
     } else {
       phase = "waiting";
     }
