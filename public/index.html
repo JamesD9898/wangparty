@@ -12,8 +12,7 @@
         <a href="#" class="logo">WangParty</a>
         <ul class="nav-links">
           <li><a href="#">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li class="right"><a href="#">Profile</a></li>
+          <li><a href="#">Join Lobby</a></li>
         </ul>
       </nav>
     </header>
@@ -35,14 +34,107 @@
       </section>
 
       <section class="name-input">
+        <h3>Display Name: <span id="display-name"></span></h3>
         <label for="username">Enter your name (optional):</label>
-        <input type="text" id="username" placeholder="e.g., Alex" />
+        <div class="input-group">
+          <input type="text" id="username" placeholder="ex. Alex Kovalenko" />
+          <button id="update-name-button">Update</button>
+        </div>
       </section>
-      
+      <script>
+        // Cookie utility functions
+        function getCookieValue(name) {
+          const regex = new RegExp(`(^| )${name}=([^;]+)`);
+          const match = document.cookie.match(regex);
+          if (match) {
+            return decodeURIComponent(match[2]);
+          }
+          return null;
+        }
 
+        function setCookie(name, value, days = 30) {
+          const expires = new Date();
+          expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+          document.cookie = `${name}=${encodeURIComponent(
+            value
+          )};expires=${expires.toUTCString()};path=/`;
+        }
+
+        // Initialize display name
+        function initializeDisplayName() {
+          let name = getCookieValue("name");
+          if (!name) {
+            const guestName = "Guest" + Math.round(Math.random() * 1000000);
+            setCookie("name", guestName);
+            name = guestName;
+          }
+
+          const displayName = document.getElementById("display-name");
+          displayName.textContent = name;
+
+          // Set the input field to current name for easy editing
+          const usernameInput = document.getElementById("username");
+          usernameInput.value = name;
+        }
+
+        // Update name functionality
+        function updateDisplayName() {
+          const usernameInput = document.getElementById("username");
+          const newName = usernameInput.value.trim();
+
+          if (newName && newName.length > 0) {
+            setCookie("name", newName);
+            const displayName = document.getElementById("display-name");
+            displayName.textContent = newName;
+
+            // Show success feedback
+            const button = document.getElementById("update-name-button");
+            const originalText = button.textContent;
+            button.textContent = "Updated!";
+            button.style.background =
+              "linear-gradient(135deg, #38a169 0%, #2f855a 100%)";
+
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.style.background =
+                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+            }, 2000);
+          } else {
+            // Show error feedback
+            const button = document.getElementById("update-name-button");
+            const originalText = button.textContent;
+            button.textContent = "Enter name!";
+            button.style.background =
+              "linear-gradient(135deg, #dc3545 0%, #c82333 100%)";
+
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.style.background =
+                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+            }, 2000);
+          }
+        }
+
+        // Event listeners
+        document
+          .getElementById("update-name-button")
+          .addEventListener("click", updateDisplayName);
+
+        // Allow Enter key to update name
+        document
+          .getElementById("username")
+          .addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+              updateDisplayName();
+            }
+          });
+
+        // Initialize on page load
+        initializeDisplayName();
+      </script>
 
       <section>
-        <h2>Servers</h2>
+        <h3>Servers</h3>
         <button class="create-server">Create Server</button>
 
         <div class="servers"></div>
@@ -51,6 +143,21 @@
 
     <script>
       const serverdiv = document.querySelector(".servers");
+
+      function handleJoinLobby() {
+        // Use the current name from cookie (already updated by the update button)
+        const currentName = getCookieValue("name");
+        if (currentName) {
+          // Cookie is already set, just redirect
+          window.location.href = "/game/game.html";
+        } else {
+          // Fallback - set a guest name
+          const guestName = "Guest" + Math.round(Math.random() * 1000000);
+          setCookie("name", guestName);
+          window.location.href = "/game/game.html";
+        }
+      }
+
       async function updateServerDiv() {
         const servers = await fetch("/api/servers").then((res) => res.json());
         let serverhtml = "";
@@ -62,24 +169,21 @@
                 ${server.public ? "Public" : "Private"}
               </p>
               <p class="players">${server.players.length}/5 Players</p>
-              <button class="join" onclick="handleJoinLobby()">Join Lobby</button>
+              <button class="join" data-server-id="${
+                server.id
+              }">Join Lobby</button>
             </div>`;
         });
-        function handleJoinLobby() {
-        const username = document.getElementById("username").value.trim();
-        if (username) {
-           document.cookie = "name=" + encodeURIComponent(username);
-          }
-         window.location.href = "/game/game.html";
-        }
+
         serverdiv.innerHTML = serverhtml ? serverhtml : "No servers found";
-            const joinButtons = document.querySelectorAll(".join");
-           joinButtons.forEach((button) => {
-               button.addEventListener("click", () => {
-                   window.location.href = "/game/game.html";
-              });
-            });
+
+        // Add event listeners to all join buttons
+        const joinButtons = document.querySelectorAll(".join");
+        joinButtons.forEach((button) => {
+          button.addEventListener("click", handleJoinLobby);
+        });
       }
+
       updateServerDiv();
     </script>
   </body>
