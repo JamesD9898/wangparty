@@ -8,7 +8,13 @@
     <link rel="stylesheet" href="../main.css" />
   </head>
 
-  <audio id="lobbyMusic" src="../music/a-goofy-and-silly-medieval-song-161310.mp3" autoplay loop></audio>
+  <audio id="gameMusic" src="../music/a-goofy-and-silly-medieval-song-161310.mp3" autoplay loop></audio>
+  <script>
+    const audio = document.getElementById("gameMusic");
+    audio.volume = 0.3; // 20% volume, adjust as needed
+  </script>
+
+
 
   <body>
     <section class="main">

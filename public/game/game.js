@@ -49,30 +49,5 @@ function getCookieValue(name) {
     ?.split("=")[1];
   return value ? decodeURIComponent(value) : null;
 }
-
-answers = {
-    content: "",
-    content: "",
-    content: ""
-}
-
-let answernum = 0;
-
-function addanswers(){
-    const user = getCookieValue("name");
-    const answerForm = document.getElementById("answerhere");
-    const answerContent = answerForm.value;
-    messages.push({ user: user, message: messageContent });
-    renderAnswers();
-    removeFirstMessage();
-}
-function renderAnswers() {
-    messageDiv.innerHTML = "";
-    for (let i = 0; i < messages.length; i++) {
-      let MessageHTML = ` <p><span class="sender">${messages[i].user}</span> : <span class="message">${messages[i].message}</span></p>`;
-      messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
-    }
-  }
 console.log(name);
 document.getElementById("currentPlayer").innerHTML = name;
-
