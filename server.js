@@ -14,10 +14,11 @@ let players = [
 ];
 let playerup = 0;
 let playersanswers = [];
-let phase = "Waiting";
+let phase = "answering";
 let question = "";
 let phaseBeginTime = "";
 let gameChat = [];
+let answers = [];
 let votes = [0, 0];
 
 require('dotenv').config();
@@ -59,18 +60,14 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message, user } = req.body;
-  
-  if (!message || !user) {
-    return res.status(400).json({ error: 'Message and user are required' });
-  }
-  
-  gameChat.push({ user, message });
+  const { message } = req.body;
+  gameChat.push(message);
   if(gameChat.length > 7){
     gameChat.shift();
   }
   res.json({ message: 'Message added to chat' });
 });
+
 app.post('/api/servers/join', async (req, res) => {
   try {
     const { serverID, playerID } = req.body;
@@ -167,9 +164,13 @@ app.post('/specifiedroute', (req, res) => {
   while(phase=="voting"){
     if(reqButton=="Approve"){
     votes[0]++;
-  }else{
+    }else{
     votes[1]++;
+    }
   }
+
+  if(phase != "voting"){
+    votes[0] = votes[1] = 0;
   }
 })
 
@@ -185,10 +186,22 @@ async function gameLoop(){
       }
       playerup = (playerup+1) % players;
       phase = "answering"
-      // TODO find a way to log the time and set it to phaseTime
-      // wait for the current player to add answers
-      // wait for the current players time to end 
-      phase = "voting";
+      while(phase == "answering"){
+        app.get('/api/answers', async (req, res) => {
+          res.json({ answers });
+        })
+        app.post('/api/answers', async (req, res) => {
+          const { answer } = req.body;
+          if(phase == "answering" && answers.length<5){
+            answers.push(answer);
+          } else if (phase == "questioning" || phase == "waiting"){
+            answer.clear();
+          }
+          
+        })
+        phase = "voting";
+      }
+      
       while(phase == "voting"){
 
       }
