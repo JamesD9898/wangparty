@@ -3,55 +3,137 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Lobby</title>
+    <title>Five Second Rule - Game</title>
     <link rel="stylesheet" href="game.css" />
     <link rel="stylesheet" href="../main.css" />
   </head>
   <body>
-   
-    <section class="main">
-      <nav>
+    <header class="game-header">
+      <div class="game-logo">
         <h1>Five Second Rule</h1>
-      </nav>
-      <h2>Question: <span id="question"></span></h2>
-      <h2>Time: <span id="time"></span></h2>
-      <h2>Up now: <span id="currentPlayer"></span></h2>
-    </section>
-    <script>
-        const questionDiv = document.getByElementID(question);
-        
-
-    </script>
-
-    <section class = "answering">
-        <h2 id = "answer">Answer</h2>
-        <div id = "answerBox"></div>
-        <form id="answerForm">
-            <input type = "text" placeholder = "Submit Answer" id ="answerhere" />
-            <button onclick ="addanswers()">Send</button>
-        </form>
-    </section>
-    <ul id="answers">
-        <li>Answer 1 <span id = "a1"></span></li>
-        <li>Answer 2<span id = "a2"></span></li>
-        <li>Answer 3<span id = "a3"></span></li>
-        <li>Answer 4<span id = "a4"></span></li>
-      </ul>
-    <section class="vote">
-      <h2>Answer 1</h2>
-      <div class="vote-buttons">
-        <button type = "submit" onclick="countvote(true)">Approve</button>
-        <button type = "submit" onclick="countvote(false)">Reject</button>
       </div>
-    </section>
-    <section class="chat">
-      <h2 id ="mainChat">Chat</h2>
-      <div id="messages"></div>
-      <form action="" id="messageForm">
-        <input type="text" placeholder="Send a Message" id="messagehere" />
-        <button onclick="addnewmessage()">Send</button>
-      </form>
-    </section>
+      <div class="player-info">
+        <div class="current-player">
+          <span id="currentPlayer">Loading...</span>
+        </div>
+        <button class="leave-game-btn" onclick="leaveGame()">Leave Game</button>
+      </div>
+    </header>
+
+    <div class="game-container">
+      <div class="gamePanel">
+        <div class="gameStatus">
+          <div class="statusCard questionCard">
+            <div class="cardHdr">
+              <h3>Current Question</h3>
+            </div>
+            <div class="questionContent">
+              <p id="question">Waiting for question...</p>
+            </div>
+          </div>
+
+          <div class="statusGrid">
+            <div class="statusCard timerCard">
+              <div class="cardHdr">
+                <h3>Time Left</h3>
+              </div>
+              <div class="timerDisplay">
+                <span id="time">5:00</span>
+              </div>
+            </div>
+
+            <div class="statusCard playerTurnCard">
+              <div class="cardHdr">
+                <h3>Current Turn</h3>
+              </div>
+              <div class="playerTurn">
+                <span id="currentTurnPlayer">Waiting...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="answerSection">
+          <div class="sectionHdr">
+            <h2>Submit Your Answers</h2>
+          </div>
+
+          <form id="answerForm" class="answerForm">
+            <div class="inputGroup">
+              <input
+                type="text"
+                placeholder="Type your answer here..."
+                id="answerhere"
+              />
+              <button type="submit">Submit</button>
+            </div>
+          </form>
+
+          <div class="answersGrid">
+            <div class="answerSlot">
+              <div class="answerNumber">1</div>
+              <div class="answerText" id="a1">Empty</div>
+            </div>
+            <div class="answerSlot">
+              <div class="answerNumber">2</div>
+              <div class="answerText" id="a2">Empty</div>
+            </div>
+            <div class="answerSlot">
+              <div class="answerNumber">3</div>
+              <div class="answerText" id="a3">Empty</div>
+            </div>
+            <div class="answerSlot">
+              <div class="answerNumber">4</div>
+              <div class="answerText" id="a4">Empty</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="voteSection" id="voteSection">
+          <div class="sectionHdr">
+            <h2>Vote on Answer</h2>
+          </div>
+
+          <div class="voteCard">
+            <div class="voteAnswer">
+              <h3>Answer 1: <span id="voteAnswerText">Sample Answer</span></h3>
+            </div>
+            <div class="voteButtons">
+              <button class="voteBtn approve" onclick="countvote(true)">
+                Approve
+              </button>
+              <button class="voteBtn reject" onclick="countvote(false)">
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chatPanel">
+        <div class="chatContainer">
+          <div class="chatHdr">
+            <h2>Game Chat</h2>
+            <div class="chatStatus"></div>
+          </div>
+
+          <div class="chatMessages" id="messages"></div>
+
+          <form id="messageForm" class="chatForm">
+            <div class="chatInputGroup">
+              <input
+                type="text"
+                placeholder="Type a message..."
+                id="messagehere"
+              />
+              <button type="submit">Send</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script src="game.js"></script>
+    <script src="chat.js"></script>
   </body>
 </html>

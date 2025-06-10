@@ -15,11 +15,7 @@ let updateInterval;
 async function initializeGame() {
   var name = getCookieValue("name");
   if(!name){
-      // update cookie with guest name
-      const guestName = "Guest" + Math.round(Math.random() * 1000000);
-      console.log(guestName);
-      document.cookie = "name=" + guestName + "; path=/";
-      name = guestName;
+    window.location.href = "/";
   }
   console.log(name);
   document.getElementById("currentPlayer").innerHTML = name;
@@ -141,6 +137,7 @@ document
   .getElementById("messageForm")
   .addEventListener("submit", function (event) {
     event.preventDefault();
+    addnewmessage();
   });
 function getCookieValue(name) {
   const value = document.cookie
@@ -163,4 +160,13 @@ async function leave(name){
             console.error("Failed to join:" + error);
             //redirect to home page
         }
+}
+
+// Add leaveGame function for the new UI
+function leaveGame() {
+  const name = getCookieValue("name");
+  if (name) {
+    leave(name);
+  }
+  window.location.href = "/";
 }

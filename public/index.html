@@ -42,7 +42,7 @@
         </div>
       </section>
       <script>
-        // Cookie utility functions
+        // cookie usability function
         function getCookieValue(name) {
           const regex = new RegExp(`(^| )${name}=([^;]+)`);
           const match = document.cookie.match(regex);
@@ -60,7 +60,6 @@
           )};expires=${expires.toUTCString()};path=/`;
         }
 
-        // Initialize display name
         function initializeDisplayName() {
           let name = getCookieValue("name");
           if (!name) {
@@ -72,12 +71,10 @@
           const displayName = document.getElementById("display-name");
           displayName.textContent = name;
 
-          // Set the input field to current name for easy editing
           const usernameInput = document.getElementById("username");
           usernameInput.value = name;
         }
 
-        // Update name functionality
         function updateDisplayName() {
           const usernameInput = document.getElementById("username");
           const newName = usernameInput.value.trim();
@@ -87,7 +84,6 @@
             const displayName = document.getElementById("display-name");
             displayName.textContent = newName;
 
-            // Show success feedback
             const button = document.getElementById("update-name-button");
             const originalText = button.textContent;
             button.textContent = "Updated!";
@@ -100,7 +96,6 @@
                 "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
             }, 2000);
           } else {
-            // Show error feedback
             const button = document.getElementById("update-name-button");
             const originalText = button.textContent;
             button.textContent = "Enter name!";
@@ -115,12 +110,10 @@
           }
         }
 
-        // Event listeners
         document
           .getElementById("update-name-button")
           .addEventListener("click", updateDisplayName);
 
-        // Allow Enter key to update name
         document
           .getElementById("username")
           .addEventListener("keypress", function (event) {
@@ -129,8 +122,15 @@
             }
           });
 
-        // Initialize on page load
-        initializeDisplayName();
+        document.addEventListener("DOMContentLoaded", function () {
+          let name = getCookieValue("name");
+          if (!name) {
+            const guestName = "Guest" + Math.round(Math.random() * 1000000);
+            setCookie("name", guestName);
+          }
+
+          initializeDisplayName();
+        });
       </script>
 
       <section>
