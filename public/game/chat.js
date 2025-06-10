@@ -11,7 +11,7 @@ async function initializeGame() {
     // update cookie with guest name
     const guestName = "Guest" + Math.round(Math.random() * 1000000);
     console.log(guestName);
-    document.cookie = "name=" + guestName;
+    document.cookie = "name=" + guestName + "; path=/";
     name = guestName;
   }
   console.log(name);

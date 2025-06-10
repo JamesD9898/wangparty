@@ -2,39 +2,89 @@ const messageDiv = document.getElementById("messages");
 
 var hasVoted = false;
 
-messages = [
-  { user: "asdlkl;,", message: "Hi" },
-  { user: "alex", message: "Hi" },
-  { user: "james", message: "Nope" },
-];
+let messages = [];
+let updateInterval;
 
-addAnswers();
+// messages = [
+//   { user: "asdlkl;,", message: "Hi" },
+//   { user: "alex", message: "Hi" },
+//   { user: "james", message: "Nope" },
+// ];
 
-renderMessages();
-var name = getCookieValue("name");
-if(!name){
-    // update cookie with guest name
-    const guestName = "Guest" + Math.round(Math.random() * 1000000);
-    console.log(guestName);
-    document.cookie = "name=" + guestName;
-    name = guestName;
+// Initialize the game and start chat polling
+async function initializeGame() {
+  var name = getCookieValue("name");
+  if(!name){
+      // update cookie with guest name
+      const guestName = "Guest" + Math.round(Math.random() * 1000000);
+      console.log(guestName);
+      document.cookie = "name=" + guestName + "; path=/";
+      name = guestName;
+  }
+  console.log(name);
+  document.getElementById("currentPlayer").innerHTML = name;
+  
+  await updateMessages();
+  
+  updateInterval = setInterval(updateMessages, 1000);
 }
-console.log(name);
 
-function addnewmessage() {
+async function addnewmessage() {
   const user = getCookieValue("name");
   const messageForm = document.getElementById("messagehere");
   const messageContent = messageForm.value;
-  messages.push({ user: user, message: messageContent });
-  renderMessages();
-  removeFirstMessage();
-}
-function removeFirstMessage() {
-  if (messages.length > 7) {
-    messages.splice(0, 1);
+  
+  if (!messageContent.trim()) {
+    return; 
   }
-  renderMessages();
+  
+  try {
+    const response = await fetch('/api/gamechat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message: messageContent, user: user }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    messageForm.value = '';
+    
+    await updateMessages();
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
 }
+
+async function updateMessages() {
+  try {
+    const response = await fetch('/api/gamechat');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (JSON.stringify(messages) !== JSON.stringify(data.gameChat)) {
+      messages = data.gameChat || [];
+      renderMessages();
+    }
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+  }
+}
+
+// function removeFirstMessage() {
+//   if (messages.length > 7) {
+//     messages.splice(0, 1);
+//   }
+//   renderMessages();
+// }
+
 function renderMessages() {
   messageDiv.innerHTML = "";
   for (let i = 0; i < messages.length; i++) {
@@ -42,6 +92,16 @@ function renderMessages() {
     messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
   }
 }
+
+initializeGame();
+
+addAnswers();
+
+window.addEventListener('beforeunload', () => {
+  if (updateInterval) {
+    clearInterval(updateInterval);
+  }
+});
 
 function addAnswers(){
     isVoting = false;
@@ -52,7 +112,7 @@ function addAnswers(){
     const button = document.querySelector("button");
       
     document.getElementById("answerForm").addEventListener("submit", function(e) {
-    e.preventDefault(); // Prevent form from reloading the page
+    e.preventDefault(); // prevent form from reloading the page
 
     const input = document.getElementById("answerhere");
     const answer = input.value.trim();
@@ -90,8 +150,6 @@ function getCookieValue(name) {
   return value ? decodeURIComponent(value) : null;
 }
 
-console.log(name);
-document.getElementById("currentPlayer").innerHTML = name;
 async function leave(name){
     try{
         const response = await fetch('/api/leave', {
