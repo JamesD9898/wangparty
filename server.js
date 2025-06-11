@@ -65,8 +65,13 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message } = req.body;
-  gameChat.push(message);
+  const { message, user } = req.body;
+  
+  if (!message || !user) {
+    return res.status(400).json({ error: 'Message and user are required' });
+  }
+  
+  gameChat.push({ user, message });
   if(gameChat.length > 7){
     gameChat.shift();
   }

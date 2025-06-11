@@ -83,7 +83,8 @@ let gameState = {
   answerGiver: "",
   currentAnswerBeingVoted: "",
   gameTimer: 0,
-  votes: [0, 0]
+  votes: [0, 0],
+  playersanswers: []
 };
 
 let currentFormState = {
@@ -105,7 +106,8 @@ async function updateGameState() {
         answerGiver: data.answerGiver,
         currentAnswerBeingVoted: data.currentAnswerBeingVoted,
         gameTimer: data.gameTimer,
-        votes: data.votes || [0, 0]
+        votes: data.votes || [0, 0],
+        playersanswers: data.playersanswers || []
       };
       
       // Update chat messages if they've changed
@@ -148,6 +150,7 @@ function updateUI() {
   const questionElement = document.getElementById("question");
   const answerForm = document.getElementById("answerForm");
   const voteSection = document.getElementById("voteSection");
+  const answerSection = document.querySelector(".answerSection");
   const previousPhase = gameState.phase;
   
   // Update timer
@@ -156,6 +159,9 @@ function updateUI() {
     const seconds = gameState.gameTimer % 60;
     timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
+  
+  // Update answer slots with submitted answers
+  updateAnswerSlots();
   
   // Determine what form type should be shown
   let requiredFormType = "none";
@@ -167,6 +173,16 @@ function updateUI() {
     requiredFormType = "voting";
   } else if (gameState.phase === "buffer") {
     requiredFormType = "none"; // Hide all interactive elements during buffer
+  }
+  
+  // Show/hide the entire answer section based on whether current user is asking or answering
+  if (answerSection) {
+    if ((gameState.phase === "questioning" && gameState.questionAsker === currentUser) ||
+        (gameState.phase === "answering" && gameState.answerGiver === currentUser)) {
+      answerSection.style.display = "block";
+    } else {
+      answerSection.style.display = "none";
+    }
   }
   
   // Only update forms if the required type has changed
@@ -198,13 +214,27 @@ function updateUI() {
 function showQuestionInput() {
   // Convert answer form to question form temporarily
   const answerForm = document.getElementById("answerForm");
+  const answerSection = document.querySelector(".answerSection");
   const input = document.getElementById("answerhere");
   const button = answerForm.querySelector("button");
   
   input.placeholder = "Ask a question...";
   button.textContent = "Submit Question";
   answerForm.style.display = "block";
+  answerSection.style.display = "block"; // Show the section for question input
   document.getElementById("voteSection").style.display = "none";
+  
+  // Hide the answer grid during questioning
+  const answersGrid = document.querySelector(".answersGrid");
+  if (answersGrid) {
+    answersGrid.style.display = "none";
+  }
+  
+  // Update section header for questioning
+  const sectionHeader = answerSection.querySelector(".sectionHdr h2");
+  if (sectionHeader) {
+    sectionHeader.textContent = "Ask Your Question";
+  }
   
   // Remove old event listeners and add new one for question submission
   const newForm = answerForm.cloneNode(true);
@@ -222,13 +252,27 @@ function showQuestionInput() {
 
 function showAnswerForm() {
   const answerForm = document.getElementById("answerForm");
+  const answerSection = document.querySelector(".answerSection");
   const input = document.getElementById("answerhere");
   const button = answerForm.querySelector("button");
   
   input.placeholder = "Type your answer here...";
   button.textContent = "Submit Answer";
   answerForm.style.display = "block";
+  answerSection.style.display = "block";
   document.getElementById("voteSection").style.display = "none";
+  
+  // Show the answer grid during answering
+  const answersGrid = document.querySelector(".answersGrid");
+  if (answersGrid) {
+    answersGrid.style.display = "grid";
+  }
+  
+  // Update section header for answering
+  const sectionHeader = answerSection.querySelector(".sectionHdr h2");
+  if (sectionHeader) {
+    sectionHeader.textContent = "Submit Your Answers";
+  }
   
   // Remove old event listeners and add new one for answer submission
   const newForm = answerForm.cloneNode(true);
@@ -237,9 +281,12 @@ function showAnswerForm() {
   newForm.addEventListener("submit", async function(e) {
     e.preventDefault();
     const answer = newForm.querySelector("input").value.trim();
-    if (answer) {
+    if (answer && gameState.playersanswers.length < 4) {
       await submitAnswer(answer);
       newForm.querySelector("input").value = "";
+      
+      // Immediately update game state to show the new answer
+      await updateGameState();
     }
   });
 }
@@ -283,6 +330,14 @@ function updateVotingInterface() {
 function hideAllInteractiveElements() {
   document.getElementById("answerForm").style.display = "none";
   document.getElementById("voteSection").style.display = "none";
+  const answerSection = document.querySelector(".answerSection");
+  if (answerSection) {
+    answerSection.style.display = "none";
+  }
+  const answersGrid = document.querySelector(".answersGrid");
+  if (answersGrid) {
+    answersGrid.style.display = "none";
+  }
 }
 
 // API calls for game actions
@@ -376,6 +431,20 @@ function getCookieValue(name) {
     .find((row) => row.startsWith(name + "="))
     ?.split("=")[1];
   return value ? decodeURIComponent(value) : null;
+}
+
+// Function to update answer slots with submitted answers
+function updateAnswerSlots() {
+  for (let i = 1; i <= 4; i++) {
+    const answerSlot = document.getElementById(`a${i}`);
+    if (answerSlot) {
+      if (gameState.playersanswers && gameState.playersanswers[i - 1]) {
+        answerSlot.textContent = gameState.playersanswers[i - 1];
+      } else {
+        answerSlot.textContent = "Empty";
+      }
+    }
+  }
 }
 
 // Initialize adaptive polling
