@@ -61,7 +61,7 @@ function renderanswers(){
     document.getElementById("answerForm").addEventListener("submit", function(e) {
     e.preventDefault(); // Prevent form from reloading the page
 
-    let info = fetch('/api/gameinfo');
+    let info = fetch('/api/gamestate');
     if(info[3] == 'answering'){
         const input = document.getElementById("answerhere");
         const answer = input.value.trim();

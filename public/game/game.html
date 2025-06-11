@@ -31,6 +31,15 @@
               <p id="question">Waiting for question...</p>
             </div>
           </div>
+          <div class="statusCard playerCard">
+            <div class="cardHdr">
+              <h3>Current Players</h3>
+            </div>
+            <div class="playerContent">
+              <p id="players">Temporary Player List:</p>
+              <ul id="playerList"></ul>
+            </div>
+          </div>
 
           <div class="statusGrid">
             <div class="statusCard timerCard">
@@ -58,7 +67,7 @@
             <h2>Submit Your Answers</h2>
           </div>
 
-          <form id="answerForm" class="answerForm">
+          <form id="answerForm" class="answerForm" style="display: none">
             <div class="inputGroup">
               <input
                 type="text"
@@ -89,14 +98,14 @@
           </div>
         </div>
 
-        <div class="voteSection" id="voteSection">
+        <div class="voteSection" id="voteSection" style="display: none">
           <div class="sectionHdr">
             <h2>Vote on Answer</h2>
           </div>
 
           <div class="voteCard">
             <div class="voteAnswer">
-              <h3>Answer 1: <span id="voteAnswerText">Sample Answer</span></h3>
+              <h3>Answer: <span id="voteAnswerText">Sample Answer</span></h3>
             </div>
             <div class="voteButtons">
               <button class="voteBtn approve" onclick="countvote(true)">
@@ -134,6 +143,7 @@
     </div>
 
     <script src="game.js"></script>
-    <script src="chat.js"></script>
+    <script src="cookievalue.js"></script>
+    <script src="update.js"></script>
   </body>
 </html>
