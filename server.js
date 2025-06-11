@@ -257,8 +257,8 @@ app.post('/api/submit-answer', async (req, res) => {
     return res.status(400).json({ error: 'Answer and user are required' });
   }
   
-  if (phase !== "answering" || players[answerGiver].name !== user) {
-    return res.status(400).json({ error: 'Not your turn to answer' });
+  if (!phase.startsWith('answer') || players[answerGiver].name !== user) {
+    return res.status(400).json({ error: 'Not your turn to answer or not in answering phase' });
   }
   
   if (playersanswers.length >= 4) {
@@ -413,36 +413,50 @@ async function gameLoop() {
         continue;
       }
       
-      // Phase 2: Answering (5 seconds to give 4 answers)
-      phase = "answering";
-      gameChat.push({ 
-        user: "Server", 
-        message: `${players[answerGiver].name}, you have 5 seconds to give 4 answers!` 
-      });
-      if(gameChat.length > 7) gameChat.shift();
-      
-      // 5 second buffer before answering phase starts
+      // Phase 2: Answering (5 seconds per answer, 4 answers total)
       phase = "buffer";
       gameChat.push({ 
         user: "Server", 
-        message: `${players[answerGiver].name}, get ready to answer in 5 seconds!` 
+        message: `${players[answerGiver].name}, get ready! You'll have 5 seconds for each of 4 answers...` 
       });
       if(gameChat.length > 7) gameChat.shift();
       
-      await sleep(5000);
-      phase = "answering";
+      await sleep(3000);
       
-      gameChat.push({ 
-        user: "Server", 
-        message: `GO! ${players[answerGiver].name}, you have 5 seconds to give 4 answers!` 
-      });
-      if(gameChat.length > 7) gameChat.shift();
-      
-      startTimer(5);
-      
-      // Wait for 5 seconds or until 4 answers are given
-      while (gameTimer > 0 && playersanswers.length < 4) {
-        await sleep(100);
+      // Cycle through 4 answer phases
+      for (let answerNum = 1; answerNum <= 4; answerNum++) {
+        phase = `answer${answerNum}`;
+        const initialAnswerCount = playersanswers.length;
+        
+        gameChat.push({ 
+          user: "Server", 
+          message: `Answer ${answerNum}: GO! 5 seconds...` 
+        });
+        if(gameChat.length > 7) gameChat.shift();
+        
+        startTimer(5);
+        
+        // Wait for 5 seconds OR until they submit an answer
+        while (gameTimer > 0 && playersanswers.length === initialAnswerCount) {
+          await sleep(100);
+        }
+        
+        // If they submitted an answer early, acknowledge it
+        if (playersanswers.length > initialAnswerCount) {
+          gameChat.push({ 
+            user: "Server", 
+            message: `Answer ${answerNum} submitted early! Moving to next...` 
+          });
+          if(gameChat.length > 7) gameChat.shift();
+          await sleep(1000); // Brief pause before next answer
+        } else {
+          // Time ran out
+          gameChat.push({ 
+            user: "Server", 
+            message: `Time's up for answer ${answerNum}!` 
+          });
+          if(gameChat.length > 7) gameChat.shift();
+        }
       }
       
       if (playersanswers.length === 0) {

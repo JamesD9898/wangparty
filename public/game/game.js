@@ -134,7 +134,7 @@ function startAdaptivePolling() {
   // Determine polling rate based on game phase
   let pollRate = 1000; // Default 1 second
   
-  if (gameState.phase === "voting" || gameState.phase === "answering") {
+  if (gameState.phase === "voting" || gameState.phase.startsWith('answer')) {
     pollRate = 500; // 0.5 seconds for time-critical phases
   } else if (gameState.phase === "buffer" || gameState.phase === "waiting") {
     pollRate = 2000; // 2 seconds for less critical phases
@@ -167,7 +167,7 @@ function updateUI() {
   let requiredFormType = "none";
   if (gameState.phase === "questioning" && gameState.questionAsker === currentUser) {
     requiredFormType = "question";
-  } else if (gameState.phase === "answering" && gameState.answerGiver === currentUser) {
+  } else if (gameState.phase.startsWith('answer') && gameState.answerGiver === currentUser) {
     requiredFormType = "answer";
   } else if (gameState.phase === "voting") {
     requiredFormType = "voting";
@@ -178,7 +178,7 @@ function updateUI() {
   // Show/hide the entire answer section based on whether current user is asking or answering
   if (answerSection) {
     if ((gameState.phase === "questioning" && gameState.questionAsker === currentUser) ||
-        (gameState.phase === "answering" && gameState.answerGiver === currentUser)) {
+        (gameState.phase.startsWith('answer') && gameState.answerGiver === currentUser)) {
       answerSection.style.display = "block";
     } else {
       answerSection.style.display = "none";
@@ -256,8 +256,36 @@ function showAnswerForm() {
   const input = document.getElementById("answerhere");
   const button = answerForm.querySelector("button");
   
-  input.placeholder = "Type your answer here...";
-  button.textContent = "Submit Answer";
+  // Determine which answer number we're on
+  let answerNumber = 1;
+  if (gameState.phase === "answer1") answerNumber = 1;
+  else if (gameState.phase === "answer2") answerNumber = 2;
+  else if (gameState.phase === "answer3") answerNumber = 3;
+  else if (gameState.phase === "answer4") answerNumber = 4;
+  
+  // Check if time is up (timer at 0) and show appropriate message
+  const timeIsUp = gameState.gameTimer <= 0;
+  
+  if (timeIsUp) {
+    input.placeholder = `Time's up for Answer ${answerNumber}! Moving to next...`;
+    input.disabled = true;
+    button.disabled = true;
+    button.textContent = `Time's Up!`;
+    
+    // Show which answer we missed
+    const currentAnswerSlot = document.getElementById(`a${answerNumber}`);
+    if (currentAnswerSlot && currentAnswerSlot.textContent === "Empty") {
+      currentAnswerSlot.textContent = "Missed";
+      currentAnswerSlot.style.backgroundColor = "#ffebee";
+      currentAnswerSlot.style.color = "#d32f2f";
+    }
+  } else {
+    input.placeholder = `Answer ${answerNumber}: Type your answer here...`;
+    input.disabled = false;
+    button.disabled = false;
+    button.textContent = `Submit Answer ${answerNumber}`;
+  }
+  
   answerForm.style.display = "block";
   answerSection.style.display = "block";
   document.getElementById("voteSection").style.display = "none";
@@ -268,10 +296,48 @@ function showAnswerForm() {
     answersGrid.style.display = "grid";
   }
   
-  // Update section header for answering
+  // Update section header for answering with current answer number and timer info
   const sectionHeader = answerSection.querySelector(".sectionHdr h2");
   if (sectionHeader) {
-    sectionHeader.textContent = "Submit Your Answers";
+    if (timeIsUp) {
+      sectionHeader.textContent = `Answer ${answerNumber} - Time's Up! Moving to next...`;
+    } else {
+      sectionHeader.textContent = `Submit Answer ${answerNumber} of 4 (${gameState.gameTimer}s left)`;
+    }
+  }
+  
+  // Style the answer slots based on current state
+  for (let i = 1; i <= 4; i++) {
+    const answerSlot = document.getElementById(`a${i}`);
+    if (answerSlot) {
+      if (i === answerNumber) {
+        if (timeIsUp) {
+          // Current answer time is up - show red/warning style
+          answerSlot.style.border = "3px solid #d32f2f";
+          answerSlot.style.backgroundColor = "#ffebee";
+        } else {
+          // Current answer - show active blue style
+          answerSlot.style.border = "3px solid #007bff";
+          answerSlot.style.backgroundColor = "#e3f2fd";
+        }
+      } else if (i < answerNumber) {
+        // Previous answers - show completed or missed style
+        if (answerSlot.textContent !== "Empty" && answerSlot.textContent !== "Missed") {
+          // Completed answer
+          answerSlot.style.border = "2px solid #4caf50";
+          answerSlot.style.backgroundColor = "#e8f5e8";
+        } else {
+          // Missed answer
+          answerSlot.style.border = "2px solid #f44336";
+          answerSlot.style.backgroundColor = "#ffebee";
+        }
+      } else {
+        // Future answers - show default style
+        answerSlot.style.border = "2px solid #ddd";
+        answerSlot.style.backgroundColor = "#f8f9fa";
+        answerSlot.style.color = "#666";
+      }
+    }
   }
   
   // Remove old event listeners and add new one for answer submission
@@ -281,9 +347,17 @@ function showAnswerForm() {
   newForm.addEventListener("submit", async function(e) {
     e.preventDefault();
     const answer = newForm.querySelector("input").value.trim();
-    if (answer && gameState.playersanswers.length < 4) {
+    if (answer && !timeIsUp) {
       await submitAnswer(answer);
       newForm.querySelector("input").value = "";
+      
+      // Show immediate feedback that answer was submitted
+      const currentAnswerSlot = document.getElementById(`a${answerNumber}`);
+      if (currentAnswerSlot) {
+        currentAnswerSlot.style.border = "3px solid #4caf50";
+        currentAnswerSlot.style.backgroundColor = "#e8f5e8";
+        currentAnswerSlot.style.color = "#2e7d32";
+      }
       
       // Immediately update game state to show the new answer
       await updateGameState();
@@ -438,9 +512,20 @@ function updateAnswerSlots() {
   for (let i = 1; i <= 4; i++) {
     const answerSlot = document.getElementById(`a${i}`);
     if (answerSlot) {
-      if (gameState.playersanswers && gameState.playersanswers[i - 1]) {
-        answerSlot.textContent = gameState.playersanswers[i - 1];
-      } else {
+      const currentText = answerSlot.textContent;
+      const newText = gameState.playersanswers && gameState.playersanswers[i - 1] ? gameState.playersanswers[i - 1] : "Empty";
+      
+      // Only update text content, preserve existing styling
+      if (currentText !== newText && newText !== "Empty") {
+        answerSlot.textContent = newText;
+        // If we just got a new answer, apply completed styling
+        if (currentText === "Empty" || currentText === "Missed") {
+          answerSlot.style.border = "2px solid #4caf50";
+          answerSlot.style.backgroundColor = "#e8f5e8";
+          answerSlot.style.color = "#2e7d32";
+        }
+      } else if (currentText !== "Missed" && newText === "Empty") {
+        // Only set to Empty if it's not already marked as Missed
         answerSlot.textContent = "Empty";
       }
     }
