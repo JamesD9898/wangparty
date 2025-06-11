@@ -4,6 +4,23 @@ let answers = [];
 let currentAnswerIndex = 1;
 const maxAnswers = 4;
 
+function isUp(){
+    let info = fetch('/api/gameinfo');
+    let name = document.getElementById("currentPlayer").innerHTML;
+
+    let playerUp = info[1];
+
+    let players = info[0];
+    let phase = info[3];
+    let nameofup = players[playerUp];
+
+    if(name == nameofup && phase == "answering"){
+        return true;
+    }
+    return false;
+
+}
+
 async function addnewmessage() {
     const answerForm = document.getElementById("answerhere");
     const answerContent = answerForm.value;
@@ -11,7 +28,7 @@ async function addnewmessage() {
     if (!answerContent.trim()) {
       return; 
     }
-    //ASK JAMES ABT TS
+
     try {
       const response = await fetch('/api/answers', {
         method: 'POST',

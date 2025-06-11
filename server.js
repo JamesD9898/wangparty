@@ -12,10 +12,11 @@ let players = [
 ];
 let playerup = 0;
 let playersanswers = [];
-let phase = "Waiting";
+let phase = "answering";
 let question = "";
 let phaseBeginTime = "";
 let gameChat = [];
+let answers = [];
 let votes = [0, 0];
 let votedUsers = []; 
 let currentAnswerIndex = 0;
@@ -64,18 +65,14 @@ app.get('/api/gamechat', async (req, res) => {
   res.json({ gameChat });
 });
 app.post('/api/gamechat', async (req, res) => {
-  const { message, user } = req.body;
-  
-  if (!message || !user) {
-    return res.status(400).json({ error: 'Message and user are required' });
-  }
-  
-  gameChat.push({ user, message });
+  const { message } = req.body;
+  gameChat.push(message);
   if(gameChat.length > 7){
     gameChat.shift();
   }
   res.json({ message: 'Message added to chat' });
 });
+
 app.post('/api/servers/join', async (req, res) => {
   try {
     const { serverID, playerID } = req.body;
