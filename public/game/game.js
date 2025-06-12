@@ -4,6 +4,7 @@ var hasVoted = false;
 
 let messages = [];
 let updateInterval;
+let currentServerID = null;
 
 // messages = [
 //   { user: "asdlkl;,", message: "Hi" },
@@ -17,7 +18,14 @@ async function initializeGame() {
   if(!name){
     window.location.href = "/";
   }
-  console.log(name);
+  
+  // Get current server ID
+  currentServerID = getCurrentServerID();
+  if (!currentServerID) {
+    return; // Will redirect to home
+  }
+  
+  console.log(`Joining game on server ${currentServerID} as ${name}`);
   document.getElementById("currentPlayer").innerHTML = name;
   
   // Initial update
@@ -29,12 +37,12 @@ async function addnewmessage() {
   const messageForm = document.getElementById("messagehere");
   const messageContent = messageForm.value;
   
-  if (!messageContent.trim()) {
+  if (!messageContent.trim() || !currentServerID) {
     return; 
   }
   
   try {
-    const response = await fetch('/api/gamechat', {
+    const response = await fetch(`/api/gamechat/${currentServerID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +56,7 @@ async function addnewmessage() {
     
     messageForm.value = '';
     
-    // Trigger immediate update to show new message
+    //  immediate update to show new message
     await updateGameState();
   } catch (error) {
     console.error('Error sending message:', error);
@@ -62,21 +70,17 @@ function renderMessages() {
     let MessageHTML;
     
     if (message.user === "Server") {
-      // Server messages get special styling
       MessageHTML = `<p class="server-message"><span class="server-sender">${message.user}</span>: <span class="server-text">${message.message}</span></p>`;
     } else {
-      // Regular player messages
       MessageHTML = `<p><span class="sender">${message.user}</span> : <span class="message">${message.message}</span></p>`;
     }
     
     messageDiv.insertAdjacentHTML("beforeend", MessageHTML);
   }
   
-  // Auto-scroll to the bottom of the chat
   messageDiv.scrollTop = messageDiv.scrollHeight;
 }
 
-// Game state management
 let gameState = {
   phase: "waiting",
   questionAsker: "",
@@ -88,18 +92,22 @@ let gameState = {
 };
 
 let currentFormState = {
-  type: "", // "question", "answer", "voting", or "none"
+  type: "", // "question", "answer", "voting", "none"
   initialized: false
 };
 
 //  game state from server
 async function updateGameState() {
+  if (!currentServerID) {
+    return;
+  }
+  
   try {
-    const response = await fetch('/api/gamestate');
+    const response = await fetch(`/api/gamestate/${currentServerID}`);
     if (response.ok) {
       const data = await response.json();
       
-      // Update game state
+      // change game state
       gameState = {
         phase: data.phase,
         questionAsker: data.questionAsker,
@@ -110,7 +118,6 @@ async function updateGameState() {
         playersanswers: data.playersanswers || []
       };
       
-      // Update chat messages if they've changed
       if (JSON.stringify(messages) !== JSON.stringify(data.gameChat)) {
         messages = data.gameChat || [];
         renderMessages();
@@ -123,7 +130,6 @@ async function updateGameState() {
   }
 }
 
-// Start game state updates with adaptive polling
 let gameStateInterval;
 
 function startAdaptivePolling() {
@@ -131,19 +137,17 @@ function startAdaptivePolling() {
     clearInterval(gameStateInterval);
   }
   
-  // Determine polling rate based on game phase
-  let pollRate = 1000; // Default 1 second
+  let pollRate = 1000;
   
   if (gameState.phase === "voting" || gameState.phase.startsWith('answer')) {
-    pollRate = 500; // 0.5 seconds for time-critical phases
+    pollRate = 500; // 0.5 seconds for important phases
   } else if (gameState.phase === "buffer" || gameState.phase === "waiting") {
-    pollRate = 2000; // 2 seconds for less critical phases
+    pollRate = 2000; // 2 seconds for less important phases
   }
   
   gameStateInterval = setInterval(updateGameState, pollRate);
 }
 
-// Update UI based on game state
 function updateUI() {
   const currentUser = getCookieValue("name");
   const timerElement = document.getElementById("time");
@@ -153,17 +157,14 @@ function updateUI() {
   const answerSection = document.querySelector(".answerSection");
   const previousPhase = gameState.phase;
   
-  // Update timer
   if (timerElement) {
     const minutes = Math.floor(gameState.gameTimer / 60);
     const seconds = gameState.gameTimer % 60;
     timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
   
-  // Update answer slots with submitted answers
   updateAnswerSlots();
   
-  // Determine what form type should be shown
   let requiredFormType = "none";
   if (gameState.phase === "questioning" && gameState.questionAsker === currentUser) {
     requiredFormType = "question";
@@ -172,10 +173,9 @@ function updateUI() {
   } else if (gameState.phase === "voting") {
     requiredFormType = "voting";
   } else if (gameState.phase === "buffer") {
-    requiredFormType = "none"; // Hide all interactive elements during buffer
+    requiredFormType = "none"; r
   }
   
-  // Show/hide the entire answer section based on whether current user is asking or answering
   if (answerSection) {
     if ((gameState.phase === "questioning" && gameState.questionAsker === currentUser) ||
         (gameState.phase.startsWith('answer') && gameState.answerGiver === currentUser)) {
@@ -185,12 +185,11 @@ function updateUI() {
     }
   }
   
-  // Only update forms if the required type has changed
   if (currentFormState.type !== requiredFormType || !currentFormState.initialized) {
     currentFormState.type = requiredFormType;
     currentFormState.initialized = true;
     
-    // Show/hide sections based on phase and user role
+    // show/hide sections based on phase and user role
     if (requiredFormType === "question") {
       showQuestionInput();
     } else if (requiredFormType === "answer") {
@@ -201,18 +200,15 @@ function updateUI() {
       hideAllInteractiveElements();
     }
   } else if (requiredFormType === "voting") {
-    // Update voting interface content without recreating it
     updateVotingInterface();
   }
   
-  // Restart polling with new rate if phase changed
   if (gameState.phase !== previousPhase) {
     startAdaptivePolling();
   }
 }
 
 function showQuestionInput() {
-  // Convert answer form to question form temporarily
   const answerForm = document.getElementById("answerForm");
   const answerSection = document.querySelector(".answerSection");
   const input = document.getElementById("answerhere");
@@ -221,22 +217,19 @@ function showQuestionInput() {
   input.placeholder = "Ask a question...";
   button.textContent = "Submit Question";
   answerForm.style.display = "block";
-  answerSection.style.display = "block"; // Show the section for question input
+  answerSection.style.display = "block";
   document.getElementById("voteSection").style.display = "none";
   
-  // Hide the answer grid during questioning
   const answersGrid = document.querySelector(".answersGrid");
   if (answersGrid) {
     answersGrid.style.display = "none";
   }
   
-  // Update section header for questioning
   const sectionHeader = answerSection.querySelector(".sectionHdr h2");
   if (sectionHeader) {
     sectionHeader.textContent = "Ask Your Question";
   }
   
-  // Remove old event listeners and add new one for question submission
   const newForm = answerForm.cloneNode(true);
   answerForm.parentNode.replaceChild(newForm, answerForm);
   
@@ -256,14 +249,12 @@ function showAnswerForm() {
   const input = document.getElementById("answerhere");
   const button = answerForm.querySelector("button");
   
-  // Determine which answer number we're on
   let answerNumber = 1;
   if (gameState.phase === "answer1") answerNumber = 1;
   else if (gameState.phase === "answer2") answerNumber = 2;
   else if (gameState.phase === "answer3") answerNumber = 3;
   else if (gameState.phase === "answer4") answerNumber = 4;
   
-  // Check if time is up (timer at 0) and show appropriate message
   const timeIsUp = gameState.gameTimer <= 0;
   
   if (timeIsUp) {
@@ -272,7 +263,6 @@ function showAnswerForm() {
     button.disabled = true;
     button.textContent = `Time's Up!`;
     
-    // Show which answer we missed
     const currentAnswerSlot = document.getElementById(`a${answerNumber}`);
     if (currentAnswerSlot && currentAnswerSlot.textContent === "Empty") {
       currentAnswerSlot.textContent = "Missed";
@@ -290,13 +280,11 @@ function showAnswerForm() {
   answerSection.style.display = "block";
   document.getElementById("voteSection").style.display = "none";
   
-  // Show the answer grid during answering
   const answersGrid = document.querySelector(".answersGrid");
   if (answersGrid) {
     answersGrid.style.display = "grid";
   }
   
-  // Update section header for answering with current answer number and timer info
   const sectionHeader = answerSection.querySelector(".sectionHdr h2");
   if (sectionHeader) {
     if (timeIsUp) {
@@ -306,33 +294,26 @@ function showAnswerForm() {
     }
   }
   
-  // Style the answer slots based on current state
   for (let i = 1; i <= 4; i++) {
     const answerSlot = document.getElementById(`a${i}`);
     if (answerSlot) {
       if (i === answerNumber) {
         if (timeIsUp) {
-          // Current answer time is up - show red/warning style
           answerSlot.style.border = "3px solid #d32f2f";
           answerSlot.style.backgroundColor = "#ffebee";
         } else {
-          // Current answer - show active blue style
           answerSlot.style.border = "3px solid #007bff";
           answerSlot.style.backgroundColor = "#e3f2fd";
         }
       } else if (i < answerNumber) {
-        // Previous answers - show completed or missed style
         if (answerSlot.textContent !== "Empty" && answerSlot.textContent !== "Missed") {
-          // Completed answer
           answerSlot.style.border = "2px solid #4caf50";
           answerSlot.style.backgroundColor = "#e8f5e8";
         } else {
-          // Missed answer
           answerSlot.style.border = "2px solid #f44336";
           answerSlot.style.backgroundColor = "#ffebee";
         }
       } else {
-        // Future answers - show default style
         answerSlot.style.border = "2px solid #ddd";
         answerSlot.style.backgroundColor = "#f8f9fa";
         answerSlot.style.color = "#666";
@@ -340,7 +321,6 @@ function showAnswerForm() {
     }
   }
   
-  // Remove old event listeners and add new one for answer submission
   const newForm = answerForm.cloneNode(true);
   answerForm.parentNode.replaceChild(newForm, answerForm);
   
@@ -351,7 +331,6 @@ function showAnswerForm() {
       await submitAnswer(answer);
       newForm.querySelector("input").value = "";
       
-      // Show immediate feedback that answer was submitted
       const currentAnswerSlot = document.getElementById(`a${answerNumber}`);
       if (currentAnswerSlot) {
         currentAnswerSlot.style.border = "3px solid #4caf50";
@@ -359,7 +338,6 @@ function showAnswerForm() {
         currentAnswerSlot.style.color = "#2e7d32";
       }
       
-      // Immediately update game state to show the new answer
       await updateGameState();
     }
   });
@@ -373,7 +351,6 @@ function showVotingInterface() {
     voteAnswerText.textContent = gameState.currentAnswerBeingVoted;
   }
   
-  // Re-enable voting buttons for new answer
   const voteButtons = document.querySelectorAll('.voteBtn');
   voteButtons.forEach(button => {
     button.disabled = false;
@@ -386,12 +363,10 @@ function showVotingInterface() {
 }
 
 function updateVotingInterface() {
-  // Update voting interface content without recreating the entire interface
   const voteAnswerText = document.getElementById("voteAnswerText");
   if (voteAnswerText && voteAnswerText.textContent !== gameState.currentAnswerBeingVoted) {
     voteAnswerText.textContent = gameState.currentAnswerBeingVoted;
     
-    // Re-enable voting buttons for new answer
     const voteButtons = document.querySelectorAll('.voteBtn');
     voteButtons.forEach(button => {
       button.disabled = false;
@@ -414,10 +389,14 @@ function hideAllInteractiveElements() {
   }
 }
 
-// API calls for game actions
+// gme actions
 async function submitQuestion(question) {
+  if (!currentServerID) {
+    return;
+  }
+  
   try {
-    const response = await fetch('/api/submit-question', {
+    const response = await fetch(`/api/submit-question/${currentServerID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -435,8 +414,12 @@ async function submitQuestion(question) {
 }
 
 async function submitAnswer(answer) {
+  if (!currentServerID) {
+    return;
+  }
+  
   try {
-    const response = await fetch('/api/submit-answer', {
+    const response = await fetch(`/api/submit-answer/${currentServerID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -454,8 +437,12 @@ async function submitAnswer(answer) {
 }
 
 async function countvote(approve) {
+  if (!currentServerID) {
+    return;
+  }
+  
   try {
-    const response = await fetch('/api/vote', {
+    const response = await fetch(`/api/vote/${currentServerID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -467,12 +454,10 @@ async function countvote(approve) {
       const error = await response.json();
       console.error('Error submitting vote:', error.error);
       
-      // Show error message to user if they already voted
       if (error.error === 'You have already voted on this answer') {
         alert('You have already voted on this answer!');
       }
     } else {
-      // Disable voting buttons after successful vote
       const voteButtons = document.querySelectorAll('.voteBtn');
       voteButtons.forEach(button => {
         button.disabled = true;
@@ -485,7 +470,6 @@ async function countvote(approve) {
   }
 }
 
-// Chat message form handler
 document
   .getElementById("messageForm")
   .addEventListener("submit", function (event) {
@@ -507,7 +491,6 @@ function getCookieValue(name) {
   return value ? decodeURIComponent(value) : null;
 }
 
-// Function to update answer slots with submitted answers
 function updateAnswerSlots() {
   for (let i = 1; i <= 4; i++) {
     const answerSlot = document.getElementById(`a${i}`);
@@ -515,25 +498,43 @@ function updateAnswerSlots() {
       const currentText = answerSlot.textContent;
       const newText = gameState.playersanswers && gameState.playersanswers[i - 1] ? gameState.playersanswers[i - 1] : "Empty";
       
-      // Only update text content, preserve existing styling
       if (currentText !== newText && newText !== "Empty") {
         answerSlot.textContent = newText;
-        // If we just got a new answer, apply completed styling
         if (currentText === "Empty" || currentText === "Missed") {
           answerSlot.style.border = "2px solid #4caf50";
           answerSlot.style.backgroundColor = "#e8f5e8";
           answerSlot.style.color = "#2e7d32";
         }
       } else if (currentText !== "Missed" && newText === "Empty") {
-        // Only set to Empty if it's not already marked as Missed
         answerSlot.textContent = "Empty";
       }
     }
   }
 }
 
-// Initialize adaptive polling
+//  adaptive polling
 startAdaptivePolling();
 initializeGame();
+
+function getCurrentServerID() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const serverIDFromURL = urlParams.get('serverID');
+  
+  if (serverIDFromURL) {
+    currentServerID = parseInt(serverIDFromURL);
+    document.cookie = `serverID=${currentServerID}; path=/`;
+    return currentServerID;
+  }
+  
+  const serverIDFromCookie = getCookieValue("serverID");
+  if (serverIDFromCookie) {
+    currentServerID = parseInt(serverIDFromCookie);
+    return currentServerID;
+  }
+  
+  console.error("No server ID found, redirecting to home");
+  window.location.href = "/";
+  return null;
+}
 
 

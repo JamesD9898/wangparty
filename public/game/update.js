@@ -7,10 +7,34 @@ let gameInfo = {
   phase: "Waiting"
 };
 
+// Get current server ID from URL parameters or cookies
+function getCurrentServerID() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const serverIDFromURL = urlParams.get('serverID');
+  
+  if (serverIDFromURL) {
+    return parseInt(serverIDFromURL);
+  }
+  
+  // Try to get from cookie as fallback
+  const serverIDFromCookie = getCookieValue("serverID");
+  if (serverIDFromCookie) {
+    return parseInt(serverIDFromCookie);
+  }
+  
+  return null;
+}
+
 // Function to fetch and update game info
 async function updateGameInfo() {
+  const serverID = getCurrentServerID();
+  if (!serverID) {
+    console.error('No server ID found');
+    return;
+  }
+  
   try {
-    const response = await fetch("/api/gamestate");
+    const response = await fetch(`/api/gamestate/${serverID}`);
     if (response.ok) {
       const data = await response.json();
       gameInfo = data;
@@ -22,49 +46,33 @@ async function updateGameInfo() {
   }
 }
 
-// Initial fetch
-updateGameInfo();
+// Function to update game status display
+function updateGameStatus() {
+  // Update question display
+  const questionElement = document.getElementById('question');
+  if (questionElement) {
+    questionElement.textContent = gameInfo.question || 'Waiting for question...';
+  }
+  
+  // Update current turn player
+  const currentTurnElement = document.getElementById('currentTurnPlayer');
+  if (currentTurnElement) {
+    if (gameInfo.phase === 'questioning') {
+      currentTurnElement.textContent = `${gameInfo.questionAsker} (asking question)`;
+    } else if (gameInfo.phase && gameInfo.phase.startsWith('answer')) {
+      currentTurnElement.textContent = `${gameInfo.answerGiver} (answering)`;
+    } else if (gameInfo.phase === 'voting') {
+      currentTurnElement.textContent = 'Everyone (voting)';
+    } else {
+      currentTurnElement.textContent = gameInfo.currentPlayer || 'Waiting...';
+    }
+  }
+}
 
 const playerList = document.getElementById("playerList");
 
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
-
-//  for compatibility with other files
-function getCookieValue(name) {
-  return getCookie(name);
-}
-
-const playerName = getCookie('name');
-console.log(playerName);
-if (playerName) {
-  fetch('/api/join', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ name: playerName })
-  })
-  .then(response => {
-    if (!response.ok) {
-      return response.text().then(text => {
-        throw new Error(text);
-      });
-    }
-    return response.text();
-  })
-  .then(data => {
-    console.log('Successfully joined game:', data);
-    updateGameInfo();
-  })
-  .catch(error => {
-    console.error('Failed to join game:', error.message);
-  });
-}
+// Remove the automatic join logic - players should already be joined when they reach this page
+// This was causing issues with the wrong endpoint being called
 
 function updatePlayerList() {
   if (!playerList) return;
@@ -87,81 +95,39 @@ function updatePlayerList() {
       
       playerList.appendChild(li);
     });
+  } else {
+    const li = document.createElement("li");
+    li.textContent = "No players in game";
+    li.style.fontStyle = "italic";
+    li.style.color = "#666";
+    playerList.appendChild(li);
   }
 }
 
-function updateGameStatus() {
-  const questionElement = document.getElementById("question");
-  if (questionElement) {
-    if (gameInfo.question) {
-      questionElement.textContent = gameInfo.question;
-    } else {
-      // Show phase-specific messages
-      switch (gameInfo.phase) {
-        case "waiting":
-          questionElement.textContent = "Waiting for more players to join...";
-          break;
-        case "buffer":
-          questionElement.textContent = "Get ready for the next phase...";
-          break;
-        case "questioning":
-          questionElement.textContent = `${gameInfo.questionAsker} is asking a question to ${gameInfo.answerGiver}...`;
-          break;
-        case "answering":
-          questionElement.textContent = `${gameInfo.answerGiver} is providing answers...`;
-          break;
-        case "voting":
-          questionElement.textContent = `Voting on: "${gameInfo.currentAnswerBeingVoted}"`;
-          break;
-        case "game_over":
-          questionElement.textContent = "Game Over! Check chat for winner.";
-          break;
-        default:
-          questionElement.textContent = "Waiting for question...";
-      }
-    }
-  }
-  
-  const currentTurnElement = document.getElementById("currentTurnPlayer");
-  if (currentTurnElement) {
-    switch (gameInfo.phase) {
-      case "buffer":
-        currentTurnElement.textContent = "Preparing...";
-        break;
-      case "questioning":
-        currentTurnElement.textContent = `${gameInfo.questionAsker} (Asking)`;
-        break;
-      case "answering":
-        currentTurnElement.textContent = `${gameInfo.answerGiver} (Answering)`;
-        break;
-      case "voting":
-        currentTurnElement.textContent = "Everyone (Voting)";
-        break;
-      default:
-        currentTurnElement.textContent = "Waiting...";
-    }
-  }
-  
-  // Update timer display
-  const timerElement = document.getElementById("time");
-  if (timerElement && gameInfo.gameTimer !== undefined) {
-    const minutes = Math.floor(gameInfo.gameTimer / 60);
-    const seconds = gameInfo.gameTimer % 60;
-    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-  
-  const phaseElement = document.getElementById("gamePhase");
-  if (phaseElement) {
-    phaseElement.textContent = gameInfo.phase || "Waiting";
-  }
+// Cookie helper function
+function getCookieValue(name) {
+  const value = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(name + "="))
+    ?.split("=")[1];
+  return value ? decodeURIComponent(value) : null;
 }
 
-// update all game info every second
-setInterval(updateGameInfo, 1000);
+// Start updating game info every 2 seconds
+setInterval(updateGameInfo, 2000);
+
+// Initial update
+updateGameInfo();
 
 async function leave(name) {
+  const serverID = getCurrentServerID();
+  if (!serverID) {
+    console.error('No server ID found for leaving');
+    return;
+  }
+  
   try {
-    const response = await fetch('/api/leave', {
+    const response = await fetch(`/api/leave/${serverID}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -178,16 +144,4 @@ async function leave(name) {
     console.error("Failed to leave:", error);
     throw error;
   }
-}
-
-async function leaveGame() {
-  const name = getCookieValue("name");
-  if (name) {
-    try {
-      await leave(name);
-    } catch (error) {
-      console.error("Error leaving game:", error);
-    }
-  }
-  window.location.href = "/";
 }

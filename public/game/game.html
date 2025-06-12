@@ -145,5 +145,23 @@
     <script src="game.js"></script>
     <script src="cookievalue.js"></script>
     <script src="update.js"></script>
+    <script>
+      // Define leaveGame function for the leave button
+      function leaveGame() {
+        const name = getCookieValue("name");
+        if (name) {
+          leave(name)
+            .then(() => {
+              window.location.href = "/";
+            })
+            .catch((error) => {
+              console.error("Error leaving game:", error);
+              window.location.href = "/"; // Redirect anyway
+            });
+        } else {
+          window.location.href = "/";
+        }
+      }
+    </script>
   </body>
 </html>

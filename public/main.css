@@ -202,6 +202,7 @@ section p {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
+  flex-wrap: wrap;
 }
 
 .server:hover {
@@ -220,6 +221,7 @@ section p {
   font-size: 1.3rem;
   font-weight: 700;
   color: #2d3748;
+  min-width: 150px;
 }
 
 .visibility {
@@ -247,6 +249,97 @@ section p {
   font-weight: 600;
   color: #4a5568;
   font-size: 1rem;
+}
+
+/* Game State Styling */
+.game-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.phase {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  border: 1px solid;
+}
+
+.phase-waiting {
+  background: #f7fafc;
+  color: #2d3748;
+  border-color: #e2e8f0;
+}
+
+.phase-questioning {
+  background: #ebf8ff;
+  color: #2c5282;
+  border-color: #90cdf4;
+}
+
+.phase-answering {
+  background: #f0fff4;
+  color: #22543d;
+  border-color: #9ae6b4;
+}
+
+.phase-voting {
+  background: #fef5e7;
+  color: #744210;
+  border-color: #f6e05e;
+}
+
+.phase-buffer {
+  background: #faf5ff;
+  color: #553c9a;
+  border-color: #c4b5fd;
+}
+
+.phase-game-over {
+  background: #fed7d7;
+  color: #742a2a;
+  border-color: #fc8181;
+}
+
+.phase-unknown {
+  background: #edf2f7;
+  color: #4a5568;
+  border-color: #cbd5e0;
+}
+
+.timer {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.player-list {
+  background: #f8f9fa;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #495057;
+  border: 1px solid #e9ecef;
+}
+
+.player-name {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin: 1px;
+  font-weight: 600;
+  cursor: help;
 }
 
 .join {
@@ -371,6 +464,36 @@ section p {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  
+  .servername {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .game-status {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .phase {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  .timer {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+  }
+  
+  .player-list {
+    font-size: 0.8rem;
+    padding: 5px 8px;
+  }
+  
+  .player-name {
+    padding: 1px 6px;
+    font-size: 0.75rem;
   }
   
   .server .join {
